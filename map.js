@@ -4,10 +4,12 @@ let _mapLayers = [];
 function initMap(containerId) {
   if (_map) { _map.remove(); _map = null; }
   _map = L.map(containerId);
-  // CyclOSM: cycling-focused style — shows roads, forest paths, cycle paths distinctly
-  L.tileLayer('https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png', {
-    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> | Style: <a href="https://www.cyclosm.org" target="_blank">CyclOSM</a>',
-    subdomains: 'abc',
+  // CartoDB Positron: muted, low-contrast base map — built for data viz overlays.
+  // No filter needed; the tiles are already neutral so wind arrows and segment
+  // colors stay fully saturated and dominant.
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · © <a href="https://carto.com/attributions" target="_blank">CARTO</a>',
+    subdomains: 'abcd',
     maxZoom: 20,
   }).addTo(_map);
   return _map;

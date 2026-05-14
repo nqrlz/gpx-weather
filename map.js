@@ -29,40 +29,42 @@ function windSpeedToColor(speed) {
 }
 
 function windSpeedToArrowSize(speed) {
-  if (speed < 12) return 22;
-  if (speed < 29) return 30;
-  if (speed < 50) return 40;
-  return 50;
+  if (speed < 12) return 36;
+  if (speed < 29) return 46;
+  if (speed < 50) return 56;
+  return 66;
 }
 
 // Wind direction = where wind comes FROM (meteorological convention).
-// Arrow should point where wind is GOING → rotate by windDirection + 180°.
+// Arrow points where wind is GOING → rotate by windDirection + 180°.
+// Chunky filled-polygon shape (single silhouette combining shaft and head)
+// makes the arrow read at a glance; a thick white outline via the same
+// polygon's stroke gives it a halo against any background.
 function createWindArrowIcon(windDirection, windSpeed) {
   const rotate = (windDirection + 180) % 360;
   const color  = windSpeedToColor(windSpeed);
   const sz     = windSpeedToArrowSize(windSpeed);
   const half   = sz / 2;
 
-  // Double-render strategy: each shape drawn first in white (thicker) for the
-  // halo, then in the wind-speed color on top. Makes arrows readable over
-  // forest/water/built-up areas alike.
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${sz}" height="${sz}" viewBox="-12 -22 24 44">
+  // Single arrow silhouette: tip → head sides → shaft sides → tail.
+  // viewBox -16 -26 32 52, so the arrow is large within its bounding box.
+  const pts = '0,-24 -10,-8 -4,-8 -4,22 4,22 4,-8 10,-8';
+
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${sz}" height="${sz}" viewBox="-16 -26 32 52">
     <g transform="rotate(${rotate})">
-      <line x1="0" y1="20" x2="0" y2="-10" stroke="#ffffff" stroke-width="6" stroke-linecap="round"/>
-      <polygon points="0,-22 -7,-8 7,-8" fill="#ffffff" stroke="#ffffff" stroke-width="3" stroke-linejoin="round"/>
-      <line x1="0" y1="20" x2="0" y2="-10" stroke="${color}" stroke-width="2.5" stroke-linecap="round"/>
-      <polygon points="0,-22 -7,-8 7,-8" fill="${color}"/>
+      <polygon points="${pts}" fill="#ffffff" stroke="#ffffff" stroke-width="8" stroke-linejoin="round"/>
+      <polygon points="${pts}" fill="${color}" stroke="#0a0a0a" stroke-width="1" stroke-linejoin="round"/>
     </g>
   </svg>`;
 
   // Anchor offsets shift the visual position relative to the lat/lon point.
-  // We push the arrow ~50px to the right and ~10px up so it sits next to the
+  // We push the arrow ~58px to the right and ~10px up so it sits next to the
   // emoji marker, never overlapping it, regardless of zoom level.
   return L.divIcon({
     html: svg,
     className: 'wind-arrow-icon',
     iconSize:   [sz, sz],
-    iconAnchor: [half - 50, half + 10],
+    iconAnchor: [half - 58, half + 10],
   });
 }
 

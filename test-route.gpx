@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="VeloWetter Test" xmlns="http://www.topografix.com/GPX/1/1">
+  <trk>
+    <name>Testroute München – Starnberger See</name>
+    <trkseg>
+      <trkpt lat="48.1351" lon="11.5820"></trkpt>
+      <trkpt lat="48.1200" lon="11.5700"></trkpt>
+      <trkpt lat="48.1050" lon="11.5580"></trkpt>
+      <trkpt lat="48.0900" lon="11.5450"></trkpt>
+      <trkpt lat="48.0750" lon="11.5330"></trkpt>
+      <trkpt lat="48.0600" lon="11.5200"></trkpt>
+      <trkpt lat="48.0450" lon="11.5080"></trkpt>
+      <trkpt lat="48.0300" lon="11.4960"></trkpt>
+      <trkpt lat="48.0150" lon="11.4840"></trkpt>
+      <trkpt lat="48.0000" lon="11.4720"></trkpt>
+      <trkpt lat="47.9850" lon="11.4600"></trkpt>
+      <trkpt lat="47.9700" lon="11.4480"></trkpt>
+      <trkpt lat="47.9550" lon="11.4360"></trkpt>
+      <trkpt lat="47.9400" lon="11.4240"></trkpt>
+      <trkpt lat="47.9250" lon="11.4120"></trkpt>
+      <trkpt lat="47.9100" lon="11.4000"></trkpt>
+      <trkpt lat="47.8950" lon="11.3900"></trkpt>
+      <trkpt lat="47.8800" lon="11.3800"></trkpt>
+      <trkpt lat="47.8680" lon="11.3720"></trkpt>
+      <trkpt lat="47.8570" lon="11.3650"></trkpt>
+    </trkseg>
+  </trk>
+</gpx>

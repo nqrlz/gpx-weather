@@ -1,0 +1,426 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   gpx wetter — monochrome technical theme
+   Three colors only: ink, paper, one neutral grey for hairlines.
+   Status, hover, focus → resolved by ink opacity, not by hue.
+   ───────────────────────────────────────────────────────────────────────── */
+
+:root {
+  --ink:        #0a0a0a;
+  --ink-2:      #1a1a1a;
+  --muted:      #6b6b6b;
+  --hairline:   rgba(10,10,10,0.08);
+  --hairline-2: rgba(10,10,10,0.16);
+  --surface:    #fafafa;
+  --surface-2:  #f3f3f3;
+  --paper:      #ffffff;
+
+  --font-sans:  'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono:  'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --font-serif: 'Fraunces', Georgia, serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-weight: 400;
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Page rails: two faint vertical hairlines that mark the centered column */
+.rails {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 32px;
+}
+.rails::before,
+.rails::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--hairline-2);
+  pointer-events: none;
+}
+.rails::before { left: 0; }
+.rails::after  { right: 0; }
+
+/* ── Eyebrow primitive (mono, uppercase, tracked) */
+.card-eyebrow,
+.header-eyebrow,
+.legend-title {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--muted);
+}
+
+/* ── Header */
+header {
+  padding: 32px 0 24px;
+  border-bottom: 1px solid var(--hairline);
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.header-inner {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 24px;
+  width: 100%;
+}
+h1 {
+  font-family: var(--font-sans);
+  font-size: 28px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  line-height: 1;
+}
+h1 em {
+  font-family: var(--font-serif);
+  font-weight: 300;
+  font-style: italic;
+}
+.header-eyebrow { white-space: nowrap; }
+
+/* ── Main */
+main {
+  flex: 1;
+  padding: 32px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ── Cards (paper on surface) */
+.form-card,
+.summary-card,
+.chart-card,
+#map-wrap {
+  background: var(--paper);
+  border: 1px solid var(--hairline);
+  border-radius: 0;
+}
+
+/* ── Form card */
+.form-card {
+  padding: 24px 28px 28px;
+  display: grid;
+  gap: 18px;
+}
+.form-card .card-eyebrow {
+  margin-bottom: 4px;
+}
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+.form-group { display: flex; flex-direction: column; gap: 8px; }
+.form-group.full-width { grid-column: 1 / -1; }
+
+label {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+
+input[type="number"],
+input[type="datetime-local"] {
+  padding: 10px 12px;
+  border: 1px solid var(--hairline-2);
+  border-radius: 0;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--paper);
+  transition: border-color 0.15s;
+  width: 100%;
+}
+input:focus {
+  outline: none;
+  border-color: var(--ink);
+}
+
+/* ── File drop zone */
+.file-drop-zone {
+  position: relative;
+  border: 1px dashed var(--hairline-2);
+  background: var(--surface-2);
+  padding: 18px 16px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  text-align: center;
+}
+.file-drop-zone:hover,
+.file-drop-zone.drag-over {
+  border-color: var(--ink);
+  background: var(--surface);
+}
+.file-drop-zone input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+}
+.drop-zone-content {
+  pointer-events: none;
+}
+#file-name {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--muted);
+}
+.file-drop-zone.has-file #file-name { color: var(--ink); }
+
+/* ── Button (ink/paper inversion, no chrome) */
+button#analyze-btn {
+  padding: 12px 18px;
+  background: var(--ink);
+  color: var(--paper);
+  border: 1px solid var(--ink);
+  border-radius: 0;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+button#analyze-btn:hover:not(:disabled) { opacity: 0.85; }
+button#analyze-btn:disabled {
+  background: var(--surface-2);
+  color: var(--muted);
+  border-color: var(--hairline-2);
+  cursor: not-allowed;
+}
+.btn-arrow {
+  font-family: var(--font-mono);
+  font-weight: 400;
+}
+
+/* ── Loading */
+#loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 48px;
+  color: var(--muted);
+}
+.spinner {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--hairline-2);
+  border-top-color: var(--ink);
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+#loading p {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+
+/* ── Error */
+#error-msg {
+  background: var(--paper);
+  border: 1px solid var(--ink);
+  color: var(--ink);
+  padding: 14px 18px;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+}
+#error-msg::before {
+  content: "Fehler ";
+  font-weight: 500;
+}
+
+/* ── Summary card */
+.summary-card {
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+}
+.summary-item {
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-right: 1px solid var(--hairline);
+}
+.summary-item:last-child { border-right: none; }
+.summary-item .label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--muted);
+}
+.summary-item .value {
+  font-family: var(--font-mono);
+  font-size: 17px;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+/* ── Map */
+#map-wrap {
+  display: flex;
+  flex-direction: column;
+}
+.map-eyebrow {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--hairline);
+}
+#map { height: 520px; width: 100%; filter: saturate(0.85); }
+
+#map-legend {
+  background: var(--paper);
+  padding: 16px 18px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 32px;
+  border-top: 1px solid var(--hairline);
+}
+.legend-section { display: flex; flex-direction: column; gap: 6px; }
+.legend-title { margin-bottom: 6px; }
+.legend-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--ink);
+}
+.legend-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.legend-arrow { font-size: 12px; font-weight: 700; line-height: 1; }
+
+/* ── Weather marker (Leaflet) */
+.weather-marker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.weather-emoji { font-size: 22px; line-height: 1; }
+.weather-label {
+  background: var(--paper);
+  border: 1px solid var(--hairline-2);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  padding: 1px 5px;
+  white-space: nowrap;
+  color: var(--ink);
+  letter-spacing: 0.04em;
+}
+
+/* Leaflet popup */
+.leaflet-popup-content-wrapper {
+  border-radius: 0 !important;
+  border: 1px solid var(--ink);
+  box-shadow: none !important;
+}
+.leaflet-popup-tip { display: none; }
+.leaflet-popup-content {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.7;
+  min-width: 180px;
+  margin: 14px 16px;
+}
+.popup-content strong {
+  font-size: 11px;
+  font-weight: 500;
+  display: block;
+  margin-bottom: 6px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--hairline);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+}
+
+/* ── Charts */
+#charts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+.chart-card {
+  padding: 18px 20px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.chart-wrap { height: 180px; position: relative; }
+
+/* ── Footer */
+footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 24px 0;
+  border-top: 1px solid var(--hairline);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+footer a { color: var(--ink); text-decoration: none; }
+footer a:hover { text-decoration: underline; }
+
+/* ── Utility */
+.hidden { display: none !important; }
+
+/* ── Responsive */
+@media (max-width: 760px) {
+  .rails { padding: 0 16px; }
+  .form-row { grid-template-columns: 1fr; }
+  #charts-grid { grid-template-columns: 1fr; }
+  #map { height: 380px; }
+  .summary-card { grid-template-columns: 1fr 1fr; }
+  .summary-item { border-right: none; border-bottom: 1px solid var(--hairline); }
+  .summary-item:nth-child(odd) { border-right: 1px solid var(--hairline); }
+  h1 { font-size: 24px; }
+  .header-eyebrow { display: none; }
+  footer { flex-direction: column; }
+}

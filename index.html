@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>gpx wetter</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,300&family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="rails">
+
+    <header>
+      <div class="header-inner">
+        <h1>gpx <em>wetter</em></h1>
+        <span class="header-eyebrow">v0.1 — radroute wetterprognose</span>
+      </div>
+    </header>
+
+    <main>
+
+      <section id="upload-section">
+        <div class="form-card">
+          <div class="card-eyebrow">— Eingabe</div>
+
+          <div class="form-group full-width">
+            <label for="gpx-file">GPX-Datei</label>
+            <div class="file-drop-zone" id="drop-zone">
+              <input type="file" id="gpx-file" accept=".gpx">
+              <div class="drop-zone-content">
+                <span id="file-name">Datei auswählen oder hierher ziehen</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="start-datetime">Startdatum &amp; Uhrzeit</label>
+              <input type="datetime-local" id="start-datetime">
+            </div>
+            <div class="form-group">
+              <label for="avg-speed">Ø Geschwindigkeit (km/h)</label>
+              <input type="number" id="avg-speed" value="20" min="5" max="80" step="1">
+            </div>
+          </div>
+
+          <button id="analyze-btn" disabled>
+            <span>Tour analysieren</span>
+            <span class="btn-arrow">→</span>
+          </button>
+        </div>
+      </section>
+
+      <div id="loading" class="hidden">
+        <div class="spinner"></div>
+        <p id="loading-text">Wetterdaten werden geladen…</p>
+      </div>
+
+      <div id="error-msg" class="hidden"></div>
+
+      <section id="results-section" class="hidden">
+
+        <div id="tour-summary" class="summary-card"></div>
+
+        <div id="map-wrap">
+          <div class="card-eyebrow map-eyebrow">— Karte</div>
+          <div id="map"></div>
+          <div id="map-legend">
+            <div class="legend-section">
+              <div class="legend-title">Niederschlagswahrscheinlichkeit</div>
+              <div class="legend-row"><span class="legend-dot" style="background:#22c55e"></span>0–20 %</div>
+              <div class="legend-row"><span class="legend-dot" style="background:#eab308"></span>20–40 %</div>
+              <div class="legend-row"><span class="legend-dot" style="background:#f97316"></span>40–60 %</div>
+              <div class="legend-row"><span class="legend-dot" style="background:#ef4444"></span>60–80 %</div>
+              <div class="legend-row"><span class="legend-dot" style="background:#7c3aed"></span>&gt; 80 %</div>
+            </div>
+            <div class="legend-section">
+              <div class="legend-title">Windstärke</div>
+              <div class="legend-row"><span class="legend-arrow" style="color:#22c55e">↑</span>&lt; 12 km/h</div>
+              <div class="legend-row"><span class="legend-arrow" style="color:#eab308">↑</span>12–28 km/h</div>
+              <div class="legend-row"><span class="legend-arrow" style="color:#f97316">↑</span>29–49 km/h</div>
+              <div class="legend-row"><span class="legend-arrow" style="color:#ef4444">↑</span>≥ 50 km/h</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="charts-grid">
+          <div class="chart-card">
+            <div class="card-eyebrow">— Temperatur</div>
+            <div class="chart-wrap"><canvas id="chart-temp"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <div class="card-eyebrow">— Niederschlag</div>
+            <div class="chart-wrap"><canvas id="chart-precip"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <div class="card-eyebrow">— Windstärke</div>
+            <div class="chart-wrap"><canvas id="chart-wind"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <div class="card-eyebrow">— UV-Index</div>
+            <div class="chart-wrap"><canvas id="chart-uv"></canvas></div>
+          </div>
+        </div>
+
+      </section>
+    </main>
+
+    <footer>
+      <span>Wetter — <a href="https://open-meteo.com" target="_blank" rel="noopener">open-meteo</a></span>
+      <span>Karte — <a href="https://www.openstreetmap.org" target="_blank" rel="noopener">openstreetmap</a> · <a href="https://www.cyclosm.org" target="_blank" rel="noopener">cyclosm</a></span>
+    </footer>
+
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="gpx.js"></script>
+  <script src="weather.js"></script>
+  <script src="map.js"></script>
+  <script src="charts.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

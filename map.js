@@ -59,14 +59,15 @@ function createWindArrowIcon(windDirection, windSpeed) {
     </g>
   </svg>`;
 
-  // Anchor offsets shift the visual position relative to the lat/lon point.
-  // We push the arrow ~58px to the right and ~10px up so it sits next to the
-  // emoji marker, never overlapping it, regardless of zoom level.
+  // Anchor at a fixed pixel offset relative to lat/lon so the LEFT edge of
+  // every arrow sits 22px right of the route, independent of arrow size.
+  // (Anchoring on the center caused small arrows to feel far away while big
+  // arrows felt close — fixed-edge anchoring keeps the visual gap consistent.)
   return L.divIcon({
     html: svg,
     className: 'wind-arrow-icon',
     iconSize:   [sz, sz],
-    iconAnchor: [half - 58, half + 10],
+    iconAnchor: [-22, half + 4],
   });
 }
 

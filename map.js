@@ -43,8 +43,13 @@ function createWindArrowIcon(windDirection, windSpeed) {
   const sz     = windSpeedToArrowSize(windSpeed);
   const half   = sz / 2;
 
+  // Double-render strategy: each shape drawn first in white (thicker) for the
+  // halo, then in the wind-speed color on top. Makes arrows readable over
+  // forest/water/built-up areas alike.
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${sz}" height="${sz}" viewBox="-12 -22 24 44">
     <g transform="rotate(${rotate})">
+      <line x1="0" y1="20" x2="0" y2="-10" stroke="#ffffff" stroke-width="6" stroke-linecap="round"/>
+      <polygon points="0,-22 -7,-8 7,-8" fill="#ffffff" stroke="#ffffff" stroke-width="3" stroke-linejoin="round"/>
       <line x1="0" y1="20" x2="0" y2="-10" stroke="${color}" stroke-width="2.5" stroke-linecap="round"/>
       <polygon points="0,-22 -7,-8 7,-8" fill="${color}"/>
     </g>

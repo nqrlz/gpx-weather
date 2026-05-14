@@ -11,10 +11,15 @@ function parseGPX(text) {
     throw new Error('Keine Track-Punkte in der GPX-Datei gefunden.');
   }
 
-  const points = Array.from(trkpts).map(pt => ({
-    lat: parseFloat(pt.getAttribute('lat')),
-    lon: parseFloat(pt.getAttribute('lon')),
-  })).filter(pt => !isNaN(pt.lat) && !isNaN(pt.lon));
+  const points = Array.from(trkpts).map(pt => {
+    const eleEl = pt.querySelector('ele');
+    const ele = eleEl ? parseFloat(eleEl.textContent) : null;
+    return {
+      lat: parseFloat(pt.getAttribute('lat')),
+      lon: parseFloat(pt.getAttribute('lon')),
+      ele: ele != null && !isNaN(ele) ? ele : null,
+    };
+  }).filter(pt => !isNaN(pt.lat) && !isNaN(pt.lon));
 
   if (points.length < 2) {
     throw new Error('Die GPX-Datei enthält zu wenige gültige Punkte.');
@@ -66,14 +71,30 @@ function sampleRoutePoints(routeWithDist, intervalKm = 10, minPoints = 5, maxPoi
     const span = p2.cumDist - p1.cumDist;
     const t = span === 0 ? 0 : (targetDist - p1.cumDist) / span;
 
+    // Interpolate elevation when both endpoints have it
+    let ele = null;
+    if (p1.ele != null && p2.ele != null) ele = p1.ele + t * (p2.ele - p1.ele);
+    else if (p1.ele != null) ele = p1.ele;
+    else if (p2.ele != null) ele = p2.ele;
+
     sampled.push({
       lat: p1.lat + t * (p2.lat - p1.lat),
       lon: p1.lon + t * (p2.lon - p1.lon),
+      ele,
       distKm: targetDist,
     });
   }
 
   return { sampled, totalKm };
+}
+
+function bearingDeg(lat1, lon1, lat2, lon2) {
+  const toRad = d => d * Math.PI / 180;
+  const φ1 = toRad(lat1), φ2 = toRad(lat2);
+  const Δλ = toRad(lon2 - lon1);
+  const y = Math.sin(Δλ) * Math.cos(φ2);
+  const x = Math.cos(φ1) * Math.sin(φ2) - Math.sin(φ1) * Math.cos(φ2) * Math.cos(Δλ);
+  return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
 }
 
 function addArrivalTimes(sampledPoints, startTime, avgSpeedKmh) {

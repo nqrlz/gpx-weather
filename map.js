@@ -116,15 +116,21 @@ function renderMap(map, routeWithDist, weatherPoints) {
       iconAnchor: [32, 24],
     });
 
+    const slopeRow = pt.slopePct != null && Math.abs(pt.slopePct) > 0.3
+      ? `Steigung: ${pt.slopePct > 0 ? '+' : ''}${pt.slopePct.toFixed(1)}%<br>` : '';
+    const headRow = pt.headwindKmh != null && Math.abs(pt.headwindKmh) > 1
+      ? `${pt.headwindKmh > 0 ? 'Gegenwind' : 'Rückenwind'}: ${Math.abs(pt.headwindKmh).toFixed(0)} km/h<br>` : '';
+
     const marker = L.marker([pt.lat, pt.lon], { icon: emojiIcon })
       .bindPopup(`<div class="popup-content">
         <strong>${distStr} – ${timeStr} Uhr</strong>
         ${pt.emoji} ${pt.weatherLabel}<br>
-        🌡️ ${temp}<br>
-        🌧️ ${precip}<br>
-        💨 ${wind}<br>
-        ☀️ UV-Index: ${uv}
-      </div>`, { maxWidth: 220 })
+        Temperatur: ${temp}<br>
+        Niederschlag: ${precip}<br>
+        Wind: ${wind}<br>
+        UV-Index: ${uv}<br>
+        ${slopeRow}${headRow}
+      </div>`, { maxWidth: 240 })
       .addTo(map);
     _mapLayers.push(marker);
 

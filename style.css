@@ -32,18 +32,12 @@ html, body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-body {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-/* ── Page rails: two faint vertical hairlines that mark the centered column */
+/* ── Page rails: two faint vertical hairlines that mark the centered column.
+   Rails fill at least the viewport height — so the lines extend down even when
+   the page content is short — but never push the footer away from the content. */
 .rails {
   position: relative;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
+  min-height: 100vh;
   max-width: 1200px;
   width: 100%;
   margin: 0 auto;
@@ -106,7 +100,6 @@ h1 em {
 
 /* ── Main */
 main {
-  flex: 1;
   padding: 32px 0;
   display: flex;
   flex-direction: column;
@@ -198,6 +191,19 @@ input:focus {
   color: var(--muted);
 }
 .file-drop-zone.has-file #file-name { color: var(--ink); }
+
+.form-hint {
+  margin-top: 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+}
+.form-hint a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
 
 /* ── Button (ink/paper inversion, no chrome) */
 button#analyze-btn {

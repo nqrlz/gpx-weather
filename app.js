@@ -93,6 +93,9 @@ document.addEventListener('DOMContentLoaded', () => {
         setLoading(true, `Wetterdaten werden geladen (${done} / ${total})…`);
       });
 
+      // 5b. Adjust arrival times based on slope (GPX elevation) and headwind
+      adjustArrivalTimes(weatherPoints, startTime, speed);
+
       // 6. Render results
       const endTime   = timedPoints[timedPoints.length - 1].arrivalTime;
       const durationH = (endTime - startTime) / 3_600_000;
@@ -137,6 +140,50 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function hideError() {
     errorEl.classList.add('hidden');
+  }
+
+  // Re-compute arrival times accounting for slope and headwind.
+  // Model is intentionally simple — it's a planning estimate, not a power model.
+  //   slopeFactor = 1 - slopePct × 0.05        clamped to [0.3, 1.5]
+  //   windFactor  = 1 - headwindKmh / 60       clamped to [0.5, 1.3]
+  //   effSpeed    = baseSpeed × slopeFactor × windFactor
+  function adjustArrivalTimes(weatherPoints, startTime, baseSpeed) {
+    if (weatherPoints.length < 2) return;
+    weatherPoints[0].arrivalTime = startTime;
+    weatherPoints[0].slopePct = 0;
+    weatherPoints[0].headwindKmh = 0;
+
+    let cumMs = 0;
+    for (let i = 1; i < weatherPoints.length; i++) {
+      const a = weatherPoints[i - 1];
+      const b = weatherPoints[i];
+      const segKm = b.distKm - a.distKm;
+      if (segKm <= 0) { b.arrivalTime = new Date(startTime.getTime() + cumMs); continue; }
+
+      // Slope (only if both endpoints have elevation data)
+      let slopePct = 0;
+      if (a.ele != null && b.ele != null) {
+        slopePct = ((b.ele - a.ele) / (segKm * 1000)) * 100;
+      }
+
+      // Headwind: wind direction (meteorological "from") vs travel bearing.
+      // delta = 0 → pure headwind; delta = 180 → pure tailwind.
+      const bearing = bearingDeg(a.lat, a.lon, b.lat, b.lon);
+      const windDir = (a.windDirection ?? 0);
+      const windSpd = (a.windSpeed ?? 0);
+      const delta = (windDir - bearing) * Math.PI / 180;
+      const headwind = windSpd * Math.cos(delta);
+
+      const slopeFactor = Math.max(0.3, Math.min(1.5, 1 - slopePct * 0.05));
+      const windFactor  = Math.max(0.5, Math.min(1.3, 1 - headwind / 60));
+      const effSpeed    = baseSpeed * slopeFactor * windFactor;
+      const segMs       = (segKm / effSpeed) * 3_600_000;
+
+      cumMs += segMs;
+      b.arrivalTime = new Date(startTime.getTime() + cumMs);
+      b.slopePct    = slopePct;
+      b.headwindKmh = headwind;
+    }
   }
 
   function formatDuration(hours) {

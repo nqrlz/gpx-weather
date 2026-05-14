@@ -310,7 +310,7 @@ button#analyze-btn:disabled {
   padding: 14px 18px;
   border-bottom: 1px solid var(--hairline);
 }
-#map { height: 520px; width: 100%; filter: saturate(0.6) brightness(1.05); }
+#map { height: 520px; width: 100%; filter: saturate(0.2) brightness(1.05); }
 
 #map-legend {
   background: var(--paper);

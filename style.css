@@ -398,6 +398,23 @@ button#analyze-btn:disabled {
 }
 .chart-wrap { height: 180px; position: relative; }
 
+.chart-note {
+  margin-top: 4px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  line-height: 1.5;
+}
+.chart-note-dash {
+  display: inline-block;
+  width: 18px;
+  flex-shrink: 0;
+  border-top: 1.2px dashed var(--muted);
+}
+
 /* ── Footer */
 footer {
   display: flex;

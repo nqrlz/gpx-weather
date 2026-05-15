@@ -225,14 +225,27 @@ function renderUvChart(wpts) {
     type: 'bar',
     data: {
       labels,
-      datasets: [{
-        data: wpts.map(p => p.uvIndex),
-        backgroundColor: colors,
-        borderWidth: 0,
-        borderRadius: 2,
-        barPercentage: 0.5,
-        categoryPercentage: 0.7,
-      }],
+      datasets: [
+        {
+          data: wpts.map(p => p.uvIndex),
+          backgroundColor: colors,
+          borderWidth: 0,
+          borderRadius: 2,
+          barPercentage: 0.5,
+          categoryPercentage: 0.7,
+        },
+        {
+          // Threshold line at UV 3: WHO/BfS empfehlen ab hier Sonnenschutz
+          type: 'line',
+          data: Array(wpts.length).fill(3),
+          borderColor: '#6b6b6b',
+          borderWidth: 1.2,
+          borderDash: [4, 4],
+          pointRadius: 0,
+          pointHoverRadius: 0,
+          fill: false,
+        },
+      ],
     },
     options: {
       ...opts,
@@ -240,6 +253,7 @@ function renderUvChart(wpts) {
         ...opts.plugins,
         tooltip: {
           ...opts.plugins.tooltip,
+          filter: ctx => ctx.datasetIndex === 0,
           callbacks: {
             label(c) {
               const uv = c.parsed.y ?? 0;

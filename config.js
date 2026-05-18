@@ -4,8 +4,8 @@
 //
 // After deploying the worker, fill in both values below.
 const CONFIG = {
-  STRAVA_CLIENT_ID: '',                          // e.g. '123456'
-  WORKER_URL:       '',                          // e.g. 'https://gpx-wetter-strava.<account>.workers.dev'
+  STRAVA_CLIENT_ID: '247283',
+  WORKER_URL:       'https://gpx-wetter-strava.gpx-wetter.workers.dev',
 };
 
 function stravaConfigured() {

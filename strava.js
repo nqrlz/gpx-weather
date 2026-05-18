@@ -127,9 +127,12 @@ async function stravaGetActivityPoints(accessToken, activityId) {
 }
 
 async function stravaGetRoutePoints(accessToken, routeId) {
-  // Strava has no /streams for routes — only /export_gpx, which returns
-  // a regular GPX file. We pipe it through our existing GPX parser.
-  const url = `${STRAVA_API}/routes/${routeId}/export_gpx`;
+  // The /export_gpx endpoint is unreliable for newer route IDs (returns 404
+  // even when the route exists and is accessible). We use /routes/{id} to
+  // get the route metadata + encoded polyline and decode it locally.
+  // Polylines don't carry elevation, so slope-adjusted timing won't be
+  // available for Strava-imported routes — only for uploaded GPX files.
+  const url = `${STRAVA_API}/routes/${routeId}`;
   const r = await fetch(url, {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
@@ -138,8 +141,43 @@ async function stravaGetRoutePoints(accessToken, routeId) {
     console.error('Strava route fetch failed:', { url, status: r.status, body });
     throw new Error(`Route konnte nicht geladen werden (${r.status}) — ${body.slice(0, 200) || 'keine Antwort'}`);
   }
-  const gpxText = await r.text();
-  return parseGPX(gpxText);
+  const route = await r.json();
+  const polyline = route?.map?.polyline || route?.map?.summary_polyline;
+  if (!polyline) {
+    throw new Error('Diese Route enthält keinen Streckenverlauf.');
+  }
+  const points = _decodePolyline(polyline);
+  if (points.length < 2) {
+    throw new Error('Streckenverlauf zu kurz.');
+  }
+  return points;
+}
+
+// Google Encoded Polyline decoder — Strava uses this format for `map.polyline`.
+// Standard algorithm, decimicrodegree precision.
+function _decodePolyline(str) {
+  let index = 0, lat = 0, lng = 0;
+  const out = [];
+  while (index < str.length) {
+    let b, shift = 0, result = 0;
+    do {
+      b = str.charCodeAt(index++) - 63;
+      result |= (b & 0x1f) << shift;
+      shift += 5;
+    } while (b >= 0x20);
+    lat += (result & 1) ? ~(result >> 1) : (result >> 1);
+
+    shift = 0; result = 0;
+    do {
+      b = str.charCodeAt(index++) - 63;
+      result |= (b & 0x1f) << shift;
+      shift += 5;
+    } while (b >= 0x20);
+    lng += (result & 1) ? ~(result >> 1) : (result >> 1);
+
+    out.push({ lat: lat / 1e5, lon: lng / 1e5, ele: null });
+  }
+  return out;
 }
 
 function _streamsToTrackPoints(streams) {

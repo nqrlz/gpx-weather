@@ -274,14 +274,33 @@ input:focus {
   padding: 0 4px;
 }
 .modal-close:hover { color: var(--ink); }
-.modal-greeting {
+.modal-greeting-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
   padding: 14px 22px 0;
+  gap: 16px;
+}
+.modal-greeting-row:has(.modal-greeting:empty) { display: none; }
+.modal-greeting {
   font-family: var(--font-mono);
   font-size: 12px;
   color: var(--muted);
   letter-spacing: 0.04em;
 }
-.modal-greeting:empty { display: none; }
+.modal-logout {
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  letter-spacing: 0.04em;
+}
+.modal-logout:hover { color: var(--ink); }
 
 .modal-tabs {
   display: flex;

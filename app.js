@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const stravaList   = document.getElementById('strava-list');
   const stravaGreet  = document.getElementById('strava-greeting');
   const stravaTabs   = document.querySelectorAll('.modal-tab');
+  const stravaLogoutBtn = document.getElementById('strava-logout');
 
   // ── Default start time = now (local) ─────────────────────────────────────
   const now = new Date();
@@ -150,8 +151,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ── Strava integration ────────────────────────────────────────────────────
   stravaBtn?.addEventListener('click', () => {
+    // Try cached session first (valid for ~6h after the last OAuth)
+    const cached = stravaLoadSession();
+    if (cached) {
+      hideError();
+      setupStravaSession(cached);
+      return;
+    }
+    // Otherwise: full OAuth round-trip
     try {
-      // Stash the form so it survives the OAuth round-trip
       stravaBeginAuth({
         startDateTime: datetimeIn.value,
         avgSpeed:      speedIn.value,
@@ -159,6 +167,15 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (err) {
       showError(err.message);
     }
+  });
+
+  stravaLogoutBtn?.addEventListener('click', () => {
+    stravaClearSession();
+    stravaSession.accessToken = null;
+    stravaSession.athleteId   = null;
+    stravaSession.routes      = null;
+    stravaSession.activities  = null;
+    closeStravaModal();
   });
 
   // Close-by-backdrop and close-button delegation
@@ -199,6 +216,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
           stravaSession.routes = await stravaListRoutes(accessToken, athleteId, 30);
         } catch (err) {
+          if (handleStravaAuthError(err)) return;
           stravaList.innerHTML = `<div class="empty">${escapeHtml(err.message)}</div>`;
           return;
         }
@@ -210,12 +228,26 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
           stravaSession.activities = await stravaListActivities(accessToken, 30);
         } catch (err) {
+          if (handleStravaAuthError(err)) return;
           stravaList.innerHTML = `<div class="empty">${escapeHtml(err.message)}</div>`;
           return;
         }
       }
       renderActivityRows(stravaSession.activities);
     }
+  }
+
+  // If the API rejects our token, the cached session is dead — wipe it so
+  // the next click triggers a fresh OAuth round-trip.
+  function handleStravaAuthError(err) {
+    const msg = String(err?.message || '');
+    if (msg.includes('(401)') || msg.includes('(403)')) {
+      stravaClearSession();
+      closeStravaModal();
+      showError('Strava-Zugriff abgelaufen — bitte erneut "Von Strava importieren" klicken.');
+      return true;
+    }
+    return false;
   }
 
   function renderRouteRows(routes) {
@@ -288,6 +320,29 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // Open the Strava modal with a known-good session (either cached or fresh).
+  function setupStravaSession({ access_token, athlete_id, athlete_firstname }) {
+    if (!athlete_id) {
+      showError('Strava-Session ungültig.');
+      stravaClearSession();
+      return;
+    }
+    stravaSession.accessToken = access_token;
+    stravaSession.athleteId   = athlete_id;
+    stravaSession.routes      = null;
+    stravaSession.activities  = null;
+    stravaSession.activeTab   = 'routes';
+
+    stravaGreet.textContent = athlete_firstname
+      ? `Hallo ${athlete_firstname} — wähle eine Tour zum Importieren.`
+      : 'Wähle eine Tour zum Importieren.';
+    stravaLogoutBtn.classList.remove('hidden');
+    stravaTabs.forEach(t => t.classList.toggle('active', t.dataset.tab === 'routes'));
+
+    openStravaModal();
+    renderStravaList(); // lazy-loads routes
+  }
+
   // ── Handle OAuth callback on initial page load ────────────────────────────
   (async () => {
     if (typeof stravaDetectCallback !== 'function') return;
@@ -309,24 +364,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     setLoading(true, 'Strava-Login wird abgeschlossen…');
     try {
-      const { access_token, athlete_id, athlete_firstname } = await stravaExchangeCode(cb.code);
-      if (!athlete_id) throw new Error('Strava lieferte keine Athleten-ID zurück.');
-
-      stravaSession.accessToken = access_token;
-      stravaSession.athleteId   = athlete_id;
-      stravaSession.routes      = null;
-      stravaSession.activities  = null;
-      stravaSession.activeTab   = 'routes';
-
-      stravaGreet.textContent = athlete_firstname
-        ? `Hallo ${athlete_firstname} — wähle eine Tour zum Importieren.`
-        : 'Wähle eine Tour zum Importieren.';
-      // Reset tab UI to default ('routes' active)
-      stravaTabs.forEach(t => t.classList.toggle('active', t.dataset.tab === 'routes'));
-
-      openStravaModal();
+      const session = await stravaExchangeCode(cb.code);
+      if (!session.athlete_id) throw new Error('Strava lieferte keine Athleten-ID zurück.');
+      // Persist for ~6h so the next click skips the redirect entirely
+      stravaSaveSession(session);
       setLoading(false);
-      renderStravaList(); // loads routes lazily
+      setupStravaSession(session);
     } catch (err) {
       showError(err.message);
       setLoading(false);

@@ -13,6 +13,8 @@ const STRAVA_AUTH_URL  = 'https://www.strava.com/oauth/authorize';
 const STRAVA_API       = 'https://www.strava.com/api/v3';
 const STATE_KEY        = 'gpxwetter.stravaState';
 const FORM_KEY         = 'gpxwetter.formBackup';
+const SESSION_KEY      = 'gpxwetter.stravaSession';
+const TOKEN_BUFFER_MS  = 5 * 60_000;  // refresh 5 min before expiry
 
 const CYCLING_TYPES = new Set([
   'Ride', 'VirtualRide', 'EBikeRide', 'GravelRide', 'MountainBikeRide', 'Handcycle',
@@ -75,6 +77,30 @@ function stravaDetectCallback() {
   }
 
   return { code, formBackup };
+}
+
+function stravaSaveSession(data) {
+  try { localStorage.setItem(SESSION_KEY, JSON.stringify(data)); } catch {}
+}
+
+function stravaLoadSession() {
+  try {
+    const raw = localStorage.getItem(SESSION_KEY);
+    if (!raw) return null;
+    const data = JSON.parse(raw);
+    if (!data.access_token || !data.athlete_id || !data.expires_at) return null;
+    if (data.expires_at * 1000 < Date.now() + TOKEN_BUFFER_MS) {
+      localStorage.removeItem(SESSION_KEY);
+      return null;
+    }
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+function stravaClearSession() {
+  localStorage.removeItem(SESSION_KEY);
 }
 
 async function stravaExchangeCode(code) {

@@ -231,8 +231,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const hm   = Math.round(rt.elevation_gain || 0);
       const btn = makeListItem(dateStr, rt.name, `${km} km · ${hm} hm`);
       btn.addEventListener('click', async () => {
+        // rt.id is a number — for route IDs > 2^53 JS loses precision.
+        // Strava also returns id_str as exact string identifier; prefer that.
         await selectAndLoad(btn,
-          () => stravaGetRoutePoints(stravaSession.accessToken, rt.id),
+          () => stravaGetRoutePoints(stravaSession.accessToken, rt.id_str || rt.id),
           rt.name
         );
       });
@@ -254,7 +256,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const btn = makeListItem(dateStr, a.name, `${km} km · ${hm} hm`);
       btn.addEventListener('click', async () => {
         await selectAndLoad(btn,
-          () => stravaGetActivityPoints(stravaSession.accessToken, a.id),
+          () => stravaGetActivityPoints(stravaSession.accessToken, a.id_str || a.id),
           a.name
         );
       });

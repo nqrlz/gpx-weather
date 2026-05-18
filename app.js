@@ -232,7 +232,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const btn = makeListItem(dateStr, rt.name, `${km} km · ${hm} hm`);
       btn.addEventListener('click', async () => {
         await selectAndLoad(btn,
-          () => stravaGetRouteStreams(stravaSession.accessToken, rt.id),
+          () => stravaGetRoutePoints(stravaSession.accessToken, rt.id),
           rt.name
         );
       });
@@ -254,7 +254,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const btn = makeListItem(dateStr, a.name, `${km} km · ${hm} hm`);
       btn.addEventListener('click', async () => {
         await selectAndLoad(btn,
-          () => stravaGetActivityStreams(stravaSession.accessToken, a.id),
+          () => stravaGetActivityPoints(stravaSession.accessToken, a.id),
           a.name
         );
       });
@@ -274,11 +274,10 @@ document.addEventListener('DOMContentLoaded', () => {
     return btn;
   }
 
-  async function selectAndLoad(btn, fetchStreams, name) {
+  async function selectAndLoad(btn, fetchPoints, name) {
     stravaList.querySelectorAll('.activity-item').forEach(el => el.disabled = true);
     try {
-      const streams = await fetchStreams();
-      const pts = stravaStreamsToTrackPoints(streams);
+      const pts = await fetchPoints();
       loadTrackPoints(pts, `Strava — ${name}`);
       closeStravaModal();
     } catch (err) {

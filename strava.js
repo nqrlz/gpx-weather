@@ -103,15 +103,6 @@ async function stravaListActivities(accessToken, perPage = 30) {
   );
 }
 
-async function stravaGetActivityStreams(accessToken, activityId) {
-  const url = new URL(`${STRAVA_API}/activities/${activityId}/streams`);
-  url.searchParams.set('keys', 'latlng,altitude,time');
-  url.searchParams.set('key_by_type', 'true');
-  const r = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } });
-  if (!r.ok) throw new Error(`Streckendaten konnten nicht geladen werden (${r.status})`);
-  return r.json();
-}
-
 async function stravaListRoutes(accessToken, athleteId, perPage = 30) {
   const url = new URL(`${STRAVA_API}/athletes/${athleteId}/routes`);
   url.searchParams.set('per_page', String(perPage));
@@ -122,29 +113,35 @@ async function stravaListRoutes(accessToken, athleteId, perPage = 30) {
   return all.filter(rt => rt.type === 1);
 }
 
-async function stravaGetRouteStreams(accessToken, routeId) {
-  // The /routes/{id}/streams endpoint always returns an array of stream
-  // objects (no key_by_type support), so we normalize to keyed format.
-  const r = await fetch(`${STRAVA_API}/routes/${routeId}/streams`, {
+// Both fetchers return a unified trackPoints[] array so the caller doesn't
+// need to know whether the source was a streams endpoint or a GPX export.
+
+async function stravaGetActivityPoints(accessToken, activityId) {
+  const url = new URL(`${STRAVA_API}/activities/${activityId}/streams`);
+  url.searchParams.set('keys', 'latlng,altitude,time');
+  url.searchParams.set('key_by_type', 'true');
+  const r = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } });
+  if (!r.ok) throw new Error(`Aktivitätsdaten konnten nicht geladen werden (${r.status})`);
+  const streams = await r.json();
+  return _streamsToTrackPoints(streams);
+}
+
+async function stravaGetRoutePoints(accessToken, routeId) {
+  // Strava has no /streams for routes — only /export_gpx, which returns
+  // a regular GPX file. We pipe it through our existing GPX parser.
+  const r = await fetch(`${STRAVA_API}/routes/${routeId}/export_gpx`, {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
-  if (!r.ok) throw new Error(`Routendaten konnten nicht geladen werden (${r.status})`);
-  return _normalizeStreams(await r.json());
+  if (!r.ok) throw new Error(`Route konnte nicht geladen werden (${r.status})`);
+  const gpxText = await r.text();
+  return parseGPX(gpxText);
 }
 
-function _normalizeStreams(streams) {
-  if (!Array.isArray(streams)) return streams;
-  const out = {};
-  for (const s of streams) out[s.type] = s;
-  return out;
-}
-
-function stravaStreamsToTrackPoints(streams) {
-  const normalized = _normalizeStreams(streams);
-  const coords = normalized.latlng?.data || [];
-  const eles   = normalized.altitude?.data;
+function _streamsToTrackPoints(streams) {
+  const coords = streams?.latlng?.data || [];
+  const eles   = streams?.altitude?.data;
   if (coords.length < 2) {
-    throw new Error('Diese Tour enthält keine GPS-Daten.');
+    throw new Error('Diese Aktivität enthält keine GPS-Daten.');
   }
   return coords.map((latlon, i) => ({
     lat: latlon[0],

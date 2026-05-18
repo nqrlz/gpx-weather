@@ -1,0 +1,7 @@
+name = "gpx-wetter-strava"
+main = "worker.js"
+compatibility_date = "2026-05-15"
+
+# Secrets are NOT stored here. Set them once via:
+#   wrangler secret put STRAVA_CLIENT_ID
+#   wrangler secret put STRAVA_CLIENT_SECRET

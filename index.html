@@ -36,8 +36,12 @@
               </div>
             </div>
             <p class="form-hint">
-              Tipp — bei <a href="https://www.komoot.com" target="_blank" rel="noopener">Komoot</a> &amp; <a href="https://www.strava.com" target="_blank" rel="noopener">Strava</a> kannst du deine Tour als GPX exportieren.
+              Tipp — bei <a href="https://www.komoot.com" target="_blank" rel="noopener">Komoot</a> kannst du deine Tour als GPX exportieren.
             </p>
+            <button type="button" id="strava-btn" class="strava-btn hidden">
+              <span class="strava-icon">▲</span>
+              <span>Von Strava importieren</span>
+            </button>
           </div>
 
           <div class="form-row">
@@ -64,6 +68,18 @@
       </div>
 
       <div id="error-msg" class="hidden"></div>
+
+    <div id="strava-modal" class="modal hidden">
+      <div class="modal-backdrop" data-close="1"></div>
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="card-eyebrow">— Strava-Touren</div>
+          <button type="button" class="modal-close" data-close="1" aria-label="Schließen">×</button>
+        </div>
+        <div id="strava-greeting" class="modal-greeting"></div>
+        <div id="strava-activities" class="strava-activities"></div>
+      </div>
+    </div>
 
       <section id="results-section" class="hidden">
 
@@ -123,10 +139,12 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="config.js"></script>
   <script src="gpx.js"></script>
   <script src="weather.js"></script>
   <script src="map.js"></script>
   <script src="charts.js"></script>
+  <script src="strava.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

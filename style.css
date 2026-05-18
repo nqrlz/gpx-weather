@@ -205,6 +205,138 @@ input:focus {
   text-underline-offset: 2px;
 }
 
+.strava-btn {
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: var(--paper);
+  color: var(--ink);
+  border: 1px solid var(--hairline-2);
+  border-radius: 0;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  transition: border-color 0.15s, background 0.15s;
+  width: 100%;
+  justify-content: center;
+}
+.strava-btn:hover { border-color: var(--ink); background: var(--surface-2); }
+.strava-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.strava-icon {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: #fc4c02; /* Strava orange — only spot of brand color in the UI */
+}
+
+/* ── Modal */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(10,10,10,0.4);
+  cursor: pointer;
+}
+.modal-card {
+  position: relative;
+  background: var(--paper);
+  border: 1px solid var(--hairline-2);
+  width: 100%;
+  max-width: 560px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--hairline);
+}
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+}
+.modal-close:hover { color: var(--ink); }
+.modal-greeting {
+  padding: 14px 22px 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+.modal-greeting:empty { display: none; }
+
+.strava-activities {
+  overflow-y: auto;
+  padding: 12px 0;
+}
+.strava-activities .empty,
+.strava-activities .loading {
+  padding: 32px 22px;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--muted);
+}
+.activity-item {
+  display: grid;
+  grid-template-columns: 92px 1fr auto;
+  gap: 16px;
+  align-items: baseline;
+  padding: 14px 22px;
+  border-top: 1px solid var(--hairline);
+  cursor: pointer;
+  transition: background 0.15s;
+  width: 100%;
+  background: none;
+  text-align: left;
+  border-left: none;
+  border-right: none;
+  border-bottom: none;
+  font-family: inherit;
+}
+.activity-item:first-child { border-top: none; }
+.activity-item:hover { background: var(--surface-2); }
+.activity-item:disabled { opacity: 0.5; cursor: wait; }
+.activity-date {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+.activity-name {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.activity-stats {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
 /* ── Button (ink/paper inversion, no chrome) */
 button#analyze-btn {
   padding: 12px 18px;

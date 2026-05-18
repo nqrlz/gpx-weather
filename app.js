@@ -11,6 +11,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const resultsEl    = document.getElementById('results-section');
   const summaryEl    = document.getElementById('tour-summary');
   const errorEl      = document.getElementById('error-msg');
+  const stravaBtn    = document.getElementById('strava-btn');
+  const stravaModal  = document.getElementById('strava-modal');
+  const stravaList   = document.getElementById('strava-activities');
+  const stravaGreet  = document.getElementById('strava-greeting');
 
   // ── Default start time = now (local) ─────────────────────────────────────
   const now = new Date();
@@ -22,8 +26,14 @@ document.addEventListener('DOMContentLoaded', () => {
   datetimeIn.value = localISO;
 
   // ── State ─────────────────────────────────────────────────────────────────
-  let gpxText   = null;
-  let mapInst   = null;
+  let trackPoints = null;   // populated by either GPX upload or Strava import
+  let sourceLabel = null;   // human-readable origin (filename / Strava activity name)
+  let mapInst     = null;
+
+  // ── Strava button visibility ──────────────────────────────────────────────
+  if (typeof stravaConfigured === 'function' && stravaConfigured()) {
+    stravaBtn.classList.remove('hidden');
+  }
 
   // ── File handling ─────────────────────────────────────────────────────────
   function loadFile(file) {
@@ -33,14 +43,28 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     const reader = new FileReader();
     reader.onload = e => {
-      gpxText = e.target.result;
-      fileNameEl.textContent = file.name;
-      dropZone.classList.add('has-file');
-      analyzeBtn.disabled = false;
-      hideError();
+      try {
+        trackPoints = parseGPX(e.target.result);
+        sourceLabel = file.name;
+        fileNameEl.textContent = file.name;
+        dropZone.classList.add('has-file');
+        analyzeBtn.disabled = false;
+        hideError();
+      } catch (err) {
+        showError(err.message);
+      }
     };
     reader.onerror = () => showError('Datei konnte nicht gelesen werden.');
     reader.readAsText(file);
+  }
+
+  function loadTrackPoints(points, label) {
+    trackPoints = points;
+    sourceLabel = label;
+    fileNameEl.textContent = label;
+    dropZone.classList.add('has-file');
+    analyzeBtn.disabled = false;
+    hideError();
   }
 
   fileInput.addEventListener('change', e => loadFile(e.target.files[0]));
@@ -56,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ── Analyse ───────────────────────────────────────────────────────────────
   analyzeBtn.addEventListener('click', async () => {
-    if (!gpxText) return;
+    if (!trackPoints) return;
 
     const speed     = parseFloat(speedIn.value);
     const startTime = new Date(datetimeIn.value);
@@ -71,32 +95,29 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     hideError();
-    setLoading(true, 'GPX-Datei wird verarbeitet…');
+    setLoading(true, 'Strecke wird verarbeitet…');
     resultsEl.classList.add('hidden');
 
     try {
-      // 1. Parse
-      const trackPoints = parseGPX(gpxText);
-
-      // 2. Build route with cumulative distances
+      // 1. Build route with cumulative distances
       const routeWithDist = buildRouteWithDistances(trackPoints);
 
-      // 3. Sample N evenly-spaced weather points
+      // 2. Sample N evenly-spaced weather points
       const { sampled, totalKm } = sampleRoutePoints(routeWithDist);
 
-      // 4. Attach arrival times
+      // 3. Attach arrival times
       const timedPoints = addArrivalTimes(sampled, startTime, speed);
 
-      // 5. Fetch weather (batched, with progress)
+      // 4. Fetch weather (batched, with progress)
       setLoading(true, `Wetterdaten werden geladen (0 / ${timedPoints.length})…`);
       const weatherPoints = await fetchAllWeather(timedPoints, (done, total) => {
         setLoading(true, `Wetterdaten werden geladen (${done} / ${total})…`);
       });
 
-      // 5b. Adjust arrival times based on slope (GPX elevation) and headwind
+      // 4b. Adjust arrival times based on slope (GPX elevation) and headwind
       adjustArrivalTimes(weatherPoints, startTime, speed);
 
-      // 6. Render results
+      // 5. Render results
       const endTime   = timedPoints[timedPoints.length - 1].arrivalTime;
       const durationH = (endTime - startTime) / 3_600_000;
 
@@ -125,6 +146,106 @@ document.addEventListener('DOMContentLoaded', () => {
       setLoading(false);
     }
   });
+
+  // ── Strava integration ────────────────────────────────────────────────────
+  stravaBtn?.addEventListener('click', () => {
+    try {
+      // Stash the form so it survives the OAuth round-trip
+      stravaBeginAuth({
+        startDateTime: datetimeIn.value,
+        avgSpeed:      speedIn.value,
+      });
+    } catch (err) {
+      showError(err.message);
+    }
+  });
+
+  // Close-by-backdrop and close-button delegation
+  stravaModal?.addEventListener('click', e => {
+    if (e.target.dataset.close) closeStravaModal();
+  });
+
+  function openStravaModal()  { stravaModal.classList.remove('hidden'); }
+  function closeStravaModal() { stravaModal.classList.add('hidden'); }
+
+  function renderStravaActivities(activities, accessToken) {
+    if (!activities.length) {
+      stravaList.innerHTML = '<div class="empty">Keine Rad-Aktivitäten gefunden.</div>';
+      return;
+    }
+    stravaList.innerHTML = '';
+    activities.forEach(a => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'activity-item';
+      const date = new Date(a.start_date_local);
+      const dateStr = date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' });
+      const km   = (a.distance / 1000).toFixed(1);
+      const hm   = Math.round(a.total_elevation_gain || 0);
+      btn.innerHTML = `
+        <span class="activity-date">${dateStr}</span>
+        <span class="activity-name">${escapeHtml(a.name)}</span>
+        <span class="activity-stats">${km} km · ${hm} hm</span>
+      `;
+      btn.addEventListener('click', async () => {
+        // Disable all rows while we fetch
+        stravaList.querySelectorAll('.activity-item').forEach(el => el.disabled = true);
+        try {
+          const streams = await stravaGetStreams(accessToken, a.id);
+          const pts = stravaStreamsToTrackPoints(streams);
+          loadTrackPoints(pts, `Strava — ${a.name}`);
+          closeStravaModal();
+        } catch (err) {
+          showError(err.message);
+          stravaList.querySelectorAll('.activity-item').forEach(el => el.disabled = false);
+        }
+      });
+      stravaList.appendChild(btn);
+    });
+  }
+
+  // ── Handle OAuth callback on initial page load ────────────────────────────
+  (async () => {
+    if (typeof stravaDetectCallback !== 'function') return;
+    const cb = stravaDetectCallback();
+    if (!cb) return;
+
+    if (cb.error) {
+      showError(cb.error === 'access_denied'
+        ? 'Strava-Zugriff wurde verweigert.'
+        : `Strava-Login fehlgeschlagen: ${cb.error}`);
+      return;
+    }
+
+    // Restore form values from before the redirect
+    if (cb.formBackup) {
+      if (cb.formBackup.startDateTime) datetimeIn.value = cb.formBackup.startDateTime;
+      if (cb.formBackup.avgSpeed)      speedIn.value    = cb.formBackup.avgSpeed;
+    }
+
+    setLoading(true, 'Strava-Login wird abgeschlossen…');
+    try {
+      const { access_token, athlete_firstname } = await stravaExchangeCode(cb.code);
+      setLoading(true, 'Aktivitäten werden geladen…');
+      const activities = await stravaListActivities(access_token, 30);
+
+      stravaGreet.textContent = athlete_firstname
+        ? `Hallo ${athlete_firstname} — wähle eine Tour zum Importieren.`
+        : 'Wähle eine Tour zum Importieren.';
+      renderStravaActivities(activities, access_token);
+      openStravaModal();
+    } catch (err) {
+      showError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  })();
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+  }
 
   // ── Helpers ───────────────────────────────────────────────────────────────
   function setLoading(show, text = '') {

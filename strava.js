@@ -129,10 +129,15 @@ async function stravaGetActivityPoints(accessToken, activityId) {
 async function stravaGetRoutePoints(accessToken, routeId) {
   // Strava has no /streams for routes — only /export_gpx, which returns
   // a regular GPX file. We pipe it through our existing GPX parser.
-  const r = await fetch(`${STRAVA_API}/routes/${routeId}/export_gpx`, {
+  const url = `${STRAVA_API}/routes/${routeId}/export_gpx`;
+  const r = await fetch(url, {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
-  if (!r.ok) throw new Error(`Route konnte nicht geladen werden (${r.status})`);
+  if (!r.ok) {
+    const body = await r.text().catch(() => '');
+    console.error('Strava route fetch failed:', { url, status: r.status, body });
+    throw new Error(`Route konnte nicht geladen werden (${r.status}) — ${body.slice(0, 200) || 'keine Antwort'}`);
+  }
   const gpxText = await r.text();
   return parseGPX(gpxText);
 }

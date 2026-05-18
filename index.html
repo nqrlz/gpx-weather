@@ -73,11 +73,15 @@
       <div class="modal-backdrop" data-close="1"></div>
       <div class="modal-card">
         <div class="modal-header">
-          <div class="card-eyebrow">— Strava-Touren</div>
+          <div class="card-eyebrow">— Strava-Import</div>
           <button type="button" class="modal-close" data-close="1" aria-label="Schließen">×</button>
         </div>
         <div id="strava-greeting" class="modal-greeting"></div>
-        <div id="strava-activities" class="strava-activities"></div>
+        <div class="modal-tabs">
+          <button type="button" class="modal-tab active" data-tab="routes">Routen</button>
+          <button type="button" class="modal-tab" data-tab="activities">Aktivitäten</button>
+        </div>
+        <div id="strava-list" class="strava-activities"></div>
       </div>
     </div>
 

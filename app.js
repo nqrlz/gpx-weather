@@ -13,8 +13,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const errorEl      = document.getElementById('error-msg');
   const stravaBtn    = document.getElementById('strava-btn');
   const stravaModal  = document.getElementById('strava-modal');
-  const stravaList   = document.getElementById('strava-activities');
+  const stravaList   = document.getElementById('strava-list');
   const stravaGreet  = document.getElementById('strava-greeting');
+  const stravaTabs   = document.querySelectorAll('.modal-tab');
 
   // ── Default start time = now (local) ─────────────────────────────────────
   const now = new Date();
@@ -168,40 +169,122 @@ document.addEventListener('DOMContentLoaded', () => {
   function openStravaModal()  { stravaModal.classList.remove('hidden'); }
   function closeStravaModal() { stravaModal.classList.add('hidden'); }
 
-  function renderStravaActivities(activities, accessToken) {
+  // Strava session state — kept in closure, cleared when modal closes / page reloads
+  const stravaSession = {
+    accessToken: null,
+    athleteId:   null,
+    routes:      null,    // lazy
+    activities:  null,    // lazy
+    activeTab:   'routes',
+  };
+
+  // Tab switching
+  stravaTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const target = tab.dataset.tab;
+      if (target === stravaSession.activeTab) return;
+      stravaTabs.forEach(t => t.classList.toggle('active', t === tab));
+      stravaSession.activeTab = target;
+      renderStravaList();
+    });
+  });
+
+  async function renderStravaList() {
+    const { accessToken, athleteId, activeTab } = stravaSession;
+    if (!accessToken) return;
+
+    if (activeTab === 'routes') {
+      if (!stravaSession.routes) {
+        stravaList.innerHTML = '<div class="loading">Routen werden geladen…</div>';
+        try {
+          stravaSession.routes = await stravaListRoutes(accessToken, athleteId, 30);
+        } catch (err) {
+          stravaList.innerHTML = `<div class="empty">${escapeHtml(err.message)}</div>`;
+          return;
+        }
+      }
+      renderRouteRows(stravaSession.routes);
+    } else {
+      if (!stravaSession.activities) {
+        stravaList.innerHTML = '<div class="loading">Aktivitäten werden geladen…</div>';
+        try {
+          stravaSession.activities = await stravaListActivities(accessToken, 30);
+        } catch (err) {
+          stravaList.innerHTML = `<div class="empty">${escapeHtml(err.message)}</div>`;
+          return;
+        }
+      }
+      renderActivityRows(stravaSession.activities);
+    }
+  }
+
+  function renderRouteRows(routes) {
+    if (!routes.length) {
+      stravaList.innerHTML = '<div class="empty">Keine geplanten Rad-Routen gefunden.</div>';
+      return;
+    }
+    stravaList.innerHTML = '';
+    routes.forEach(rt => {
+      const created = new Date(rt.created_at);
+      const dateStr = created.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' });
+      const km   = (rt.distance / 1000).toFixed(1);
+      const hm   = Math.round(rt.elevation_gain || 0);
+      const btn = makeListItem(dateStr, rt.name, `${km} km · ${hm} hm`);
+      btn.addEventListener('click', async () => {
+        await selectAndLoad(btn,
+          () => stravaGetRouteStreams(stravaSession.accessToken, rt.id),
+          rt.name
+        );
+      });
+      stravaList.appendChild(btn);
+    });
+  }
+
+  function renderActivityRows(activities) {
     if (!activities.length) {
       stravaList.innerHTML = '<div class="empty">Keine Rad-Aktivitäten gefunden.</div>';
       return;
     }
     stravaList.innerHTML = '';
     activities.forEach(a => {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'activity-item';
       const date = new Date(a.start_date_local);
       const dateStr = date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' });
       const km   = (a.distance / 1000).toFixed(1);
       const hm   = Math.round(a.total_elevation_gain || 0);
-      btn.innerHTML = `
-        <span class="activity-date">${dateStr}</span>
-        <span class="activity-name">${escapeHtml(a.name)}</span>
-        <span class="activity-stats">${km} km · ${hm} hm</span>
-      `;
+      const btn = makeListItem(dateStr, a.name, `${km} km · ${hm} hm`);
       btn.addEventListener('click', async () => {
-        // Disable all rows while we fetch
-        stravaList.querySelectorAll('.activity-item').forEach(el => el.disabled = true);
-        try {
-          const streams = await stravaGetStreams(accessToken, a.id);
-          const pts = stravaStreamsToTrackPoints(streams);
-          loadTrackPoints(pts, `Strava — ${a.name}`);
-          closeStravaModal();
-        } catch (err) {
-          showError(err.message);
-          stravaList.querySelectorAll('.activity-item').forEach(el => el.disabled = false);
-        }
+        await selectAndLoad(btn,
+          () => stravaGetActivityStreams(stravaSession.accessToken, a.id),
+          a.name
+        );
       });
       stravaList.appendChild(btn);
     });
+  }
+
+  function makeListItem(dateStr, name, stats) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'activity-item';
+    btn.innerHTML = `
+      <span class="activity-date">${dateStr}</span>
+      <span class="activity-name">${escapeHtml(name)}</span>
+      <span class="activity-stats">${stats}</span>
+    `;
+    return btn;
+  }
+
+  async function selectAndLoad(btn, fetchStreams, name) {
+    stravaList.querySelectorAll('.activity-item').forEach(el => el.disabled = true);
+    try {
+      const streams = await fetchStreams();
+      const pts = stravaStreamsToTrackPoints(streams);
+      loadTrackPoints(pts, `Strava — ${name}`);
+      closeStravaModal();
+    } catch (err) {
+      showError(err.message);
+      stravaList.querySelectorAll('.activity-item').forEach(el => el.disabled = false);
+    }
   }
 
   // ── Handle OAuth callback on initial page load ────────────────────────────
@@ -225,18 +308,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
     setLoading(true, 'Strava-Login wird abgeschlossen…');
     try {
-      const { access_token, athlete_firstname } = await stravaExchangeCode(cb.code);
-      setLoading(true, 'Aktivitäten werden geladen…');
-      const activities = await stravaListActivities(access_token, 30);
+      const { access_token, athlete_id, athlete_firstname } = await stravaExchangeCode(cb.code);
+      if (!athlete_id) throw new Error('Strava lieferte keine Athleten-ID zurück.');
+
+      stravaSession.accessToken = access_token;
+      stravaSession.athleteId   = athlete_id;
+      stravaSession.routes      = null;
+      stravaSession.activities  = null;
+      stravaSession.activeTab   = 'routes';
 
       stravaGreet.textContent = athlete_firstname
         ? `Hallo ${athlete_firstname} — wähle eine Tour zum Importieren.`
         : 'Wähle eine Tour zum Importieren.';
-      renderStravaActivities(activities, access_token);
+      // Reset tab UI to default ('routes' active)
+      stravaTabs.forEach(t => t.classList.toggle('active', t.dataset.tab === 'routes'));
+
       openStravaModal();
+      setLoading(false);
+      renderStravaList(); // loads routes lazily
     } catch (err) {
       showError(err.message);
-    } finally {
       setLoading(false);
     }
   })();

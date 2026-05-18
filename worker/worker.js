@@ -70,6 +70,7 @@ export default {
         return json({
           access_token: data.access_token,
           expires_at: data.expires_at,
+          athlete_id: data.athlete?.id || null,
           athlete_firstname: data.athlete?.firstname || null,
         }, 200, cors);
       } catch (e) {

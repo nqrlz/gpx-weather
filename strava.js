@@ -40,7 +40,7 @@ function stravaBeginAuth(formBackup) {
   url.searchParams.set('response_type',    'code');
   url.searchParams.set('redirect_uri',     redirectUri);
   url.searchParams.set('approval_prompt',  'auto');
-  url.searchParams.set('scope',            'read,activity:read');
+  url.searchParams.set('scope',            'read_all,activity:read_all');
   url.searchParams.set('state',            state);
 
   window.location.href = url.toString();
@@ -103,7 +103,7 @@ async function stravaListActivities(accessToken, perPage = 30) {
   );
 }
 
-async function stravaGetStreams(accessToken, activityId) {
+async function stravaGetActivityStreams(accessToken, activityId) {
   const url = new URL(`${STRAVA_API}/activities/${activityId}/streams`);
   url.searchParams.set('keys', 'latlng,altitude,time');
   url.searchParams.set('key_by_type', 'true');
@@ -112,11 +112,39 @@ async function stravaGetStreams(accessToken, activityId) {
   return r.json();
 }
 
+async function stravaListRoutes(accessToken, athleteId, perPage = 30) {
+  const url = new URL(`${STRAVA_API}/athletes/${athleteId}/routes`);
+  url.searchParams.set('per_page', String(perPage));
+  const r = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } });
+  if (!r.ok) throw new Error(`Routen konnten nicht geladen werden (${r.status})`);
+  const all = await r.json();
+  // Strava route type: 1 = ride, 2 = run. We want rides only.
+  return all.filter(rt => rt.type === 1);
+}
+
+async function stravaGetRouteStreams(accessToken, routeId) {
+  // The /routes/{id}/streams endpoint always returns an array of stream
+  // objects (no key_by_type support), so we normalize to keyed format.
+  const r = await fetch(`${STRAVA_API}/routes/${routeId}/streams`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  if (!r.ok) throw new Error(`Routendaten konnten nicht geladen werden (${r.status})`);
+  return _normalizeStreams(await r.json());
+}
+
+function _normalizeStreams(streams) {
+  if (!Array.isArray(streams)) return streams;
+  const out = {};
+  for (const s of streams) out[s.type] = s;
+  return out;
+}
+
 function stravaStreamsToTrackPoints(streams) {
-  const coords = streams.latlng?.data || [];
-  const eles   = streams.altitude?.data;
+  const normalized = _normalizeStreams(streams);
+  const coords = normalized.latlng?.data || [];
+  const eles   = normalized.altitude?.data;
   if (coords.length < 2) {
-    throw new Error('Diese Strava-Aktivität enthält keine GPS-Daten.');
+    throw new Error('Diese Tour enthält keine GPS-Daten.');
   }
   return coords.map((latlon, i) => ({
     lat: latlon[0],

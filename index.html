@@ -92,7 +92,16 @@
 
         <div id="map-wrap">
           <div class="card-eyebrow map-eyebrow">— Karte</div>
-          <div id="map"></div>
+
+          <div id="map-consent" class="map-consent">
+            <p class="map-consent-text">
+              Die Kartendarstellung lädt Kachel-Bilder von <strong>basemaps.cartocdn.com</strong> (Carto, USA).
+              Dabei wird deine IP-Adresse technisch an Carto übermittelt, damit die richtigen Kacheln ausgeliefert werden können.
+            </p>
+            <button type="button" id="map-consent-btn">Karte anzeigen</button>
+          </div>
+
+          <div id="map" class="hidden"></div>
           <div id="map-legend">
             <div class="legend-section">
               <div class="legend-title">Niederschlagswahrscheinlichkeit</div>
@@ -136,6 +145,7 @@
     </main>
 
     <footer>
+      <span><a href="datenschutz.html">datenschutz</a></span>
       <span>Wetter — <a href="https://open-meteo.com" target="_blank" rel="noopener">open-meteo</a></span>
       <span>Karte — <a href="https://www.openstreetmap.org" target="_blank" rel="noopener">openstreetmap</a> · <a href="https://carto.com" target="_blank" rel="noopener">carto</a></span>
     </footer>

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Datenschutz — gpx wetter</title>
+  <link rel="stylesheet" href="fonts/fonts.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="rails">
+
+    <header>
+      <div class="header-inner">
+        <a href="index.html" class="header-link">
+          <h1>gpx <em>wetter</em></h1>
+        </a>
+        <span class="header-eyebrow">— datenschutz</span>
+      </div>
+    </header>
+
+    <main>
+      <article class="legal-card">
+        <div class="card-eyebrow">— Datenschutzerklärung</div>
+        <p class="legal-meta">Stand 1. Juni 2026</p>
+
+        <h2>1. Verantwortlich</h2>
+        <p>
+          Diese Web-App ist ein privates, nicht-kommerzielles Hobby-Projekt ohne
+          Verkaufs- oder Gewinnerzielungsabsicht. Sie wird als statische Seite über
+          <strong>GitHub Pages</strong> ausgeliefert.
+        </p>
+
+        <h2>2. Welche Daten werden verarbeitet?</h2>
+        <p>
+          Alle Tour-Daten (GPS-Punkte, Höhe, Zeit) verbleiben im Browser. Es gibt
+          keinen Server, der sie speichert oder weiterverarbeitet — die Auswertung
+          läuft komplett lokal im Browser.
+        </p>
+        <p>
+          Für die Wetterprognose werden ausschließlich <em>aggregierte Koordinaten</em>
+          (≤ 30 Stützstellen entlang der Route) plus die gewählte Startzeit an die
+          Wetter-API gesendet — kein Personenbezug.
+        </p>
+
+        <h2>3. Eingebundene Dienste</h2>
+
+        <h3>GitHub Pages</h3>
+        <p>
+          Hosting der statischen Seite. Anbieter: GitHub, Inc. (USA). GitHub
+          verarbeitet die IP-Adresse zur Auslieferung der Inhalte und kann
+          Server-Logs anlegen.
+          <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noopener">Datenschutzhinweise von GitHub</a>.
+        </p>
+
+        <h3>Open-Meteo (Wetter-API)</h3>
+        <p>
+          Liefert die Wetterprognose. Anbieter: Open-Meteo (Schweiz / EU-konform).
+          Übertragen werden bei einer Tour-Analyse: GPS-Koordinaten der Stützstellen
+          und der gewählte Zeitpunkt. Open-Meteo speichert laut eigenen Angaben
+          keine IP-Adressen oder personenbezogenen Daten.
+          <a href="https://open-meteo.com/en/terms" target="_blank" rel="noopener">Datenschutzhinweise von Open-Meteo</a>.
+        </p>
+
+        <h3>Carto / CartoDB (Karten-Kacheln)</h3>
+        <p>
+          Liefert die Hintergrundbilder der Karte. Anbieter: CARTO (USA). Die
+          Kacheln werden <strong>nur geladen, nachdem du aktiv auf „Karte anzeigen"
+          geklickt hast</strong>. Erst durch diese Aktion wird deine IP-Adresse an
+          die Carto-Server übermittelt, damit die Kacheln ausgeliefert werden
+          können. Ohne Klick erfolgt keine Verbindung zu Carto.
+          <a href="https://carto.com/privacy/" target="_blank" rel="noopener">Datenschutzhinweise von CARTO</a>.
+        </p>
+
+        <h3>Cloudflare Workers (Strava-OAuth)</h3>
+        <p>
+          Vermittelt zwischen Browser und Strava beim optionalen Import. Anbieter:
+          Cloudflare, Inc. (USA). Wird nur erreicht, wenn du auf „Von Strava
+          importieren" klickst.
+          <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener">Datenschutzhinweise von Cloudflare</a>.
+        </p>
+
+        <h3>Cloudflare Web Analytics</h3>
+        <p>
+          Aggregierte Seitenaufruf-Statistik. Anbieter: Cloudflare, Inc. (USA).
+          Es werden <strong>keine Cookies gesetzt, kein Local Storage genutzt und
+          keine personenbezogenen Daten verarbeitet</strong>. Cloudflare anonymisiert
+          die IP-Adresse serverseitig und speichert nur aggregierte Statistiken
+          (Page Views, Land, Referrer).
+        </p>
+
+        <h3>Strava (optional)</h3>
+        <p>
+          Direkter Import von Routen und Aktivitäten. Anbieter: Strava, Inc. (USA).
+          Wird ausschließlich auf deinen expliziten Klick auf „Von Strava importieren"
+          aktiviert. Du wirst dabei auf strava.com geleitet, autorisierst dort die
+          App und kehrst zurück. Dein Strava-Access-Token wird für maximal 6 Stunden
+          im Browser (<code>localStorage</code>) gespeichert, damit du innerhalb dieser
+          Zeit nicht erneut autorisieren musst. Per „Abmelden" wird der Token sofort
+          gelöscht.
+          <a href="https://www.strava.com/legal/privacy" target="_blank" rel="noopener">Datenschutzhinweise von Strava</a>.
+        </p>
+
+        <h2>4. Cookies und lokale Speicherung</h2>
+        <p>Es werden <strong>keine Cookies</strong> gesetzt.</p>
+        <p>
+          <code>localStorage</code> wird ausschließlich genutzt für: einen
+          Strava-Access-Token (max. 6 Stunden, nur wenn du Strava nutzt) und eine
+          temporäre Sicherung der Eingabefelder während des Strava-OAuth-Redirects.
+          Beide Werte verbleiben ausschließlich auf deinem Gerät.
+        </p>
+
+        <h2>5. Rechtsgrundlage</h2>
+        <p>
+          Die Verarbeitung erfolgt auf Grundlage von Art. 6 Abs. 1 lit. b DSGVO
+          (Vertrag/vorvertraglich — die App stellt dir die gewünschte
+          Wetter-Information bereit) sowie Art. 6 Abs. 1 lit. f DSGVO (berechtigtes
+          Interesse am Betrieb einer funktionierenden privaten Web-App).
+        </p>
+        <p>
+          Für den Strava-Import und die Karten-Aktivierung ist die Rechtsgrundlage
+          deine explizite Einwilligung durch Klick (Art. 6 Abs. 1 lit. a DSGVO).
+        </p>
+
+        <h2>6. Speicherdauer</h2>
+        <p>
+          Serverseitig speichert diese App <em>nichts</em>. Im Browser bleiben:
+          Strava-Token (max. 6 h, automatisch oder manuell gelöscht), Form-Backup
+          (sofort nach Strava-Redirect gelöscht). Drittanbieter speichern Daten
+          gemäß ihrer jeweiligen Datenschutzerklärung.
+        </p>
+
+        <h2>7. Deine Rechte</h2>
+        <p>
+          Du hast nach DSGVO ein Recht auf Auskunft (Art. 15), Berichtigung (Art. 16),
+          Löschung (Art. 17), Einschränkung der Verarbeitung (Art. 18),
+          Datenübertragbarkeit (Art. 20) und Widerspruch (Art. 21). Da diese App
+          serverseitig nichts speichert, kannst du diese Rechte für die App selbst
+          jederzeit über das Löschen der Browserdaten ausüben. Für die genannten
+          Drittanbieter wende dich bitte direkt an deren Datenschutz-Stellen.
+        </p>
+
+        <h2>8. Quellcode</h2>
+        <p>
+          Der Quellcode ist offen einsehbar unter
+          <a href="https://github.com/nqrlz/gpx-weather" target="_blank" rel="noopener">github.com/nqrlz/gpx-weather</a>.
+          Du kannst dort jederzeit nachvollziehen, was die App technisch tut.
+        </p>
+
+        <p class="legal-back">
+          <a href="index.html">← zurück zur App</a>
+        </p>
+      </article>
+    </main>
+
+    <footer>
+      <span>Wetter — <a href="https://open-meteo.com" target="_blank" rel="noopener">open-meteo</a></span>
+      <span>Karte — <a href="https://www.openstreetmap.org" target="_blank" rel="noopener">openstreetmap</a> · <a href="https://carto.com" target="_blank" rel="noopener">carto</a></span>
+    </footer>
+
+  </div>
+
+</body>
+</html>

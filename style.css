@@ -490,6 +490,43 @@ button#analyze-btn:disabled {
 }
 #map { height: 520px; width: 100%; }
 
+/* Carto tile consent gate — shown until user explicitly clicks to load tiles */
+.map-consent {
+  padding: 40px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  text-align: center;
+  background: var(--surface);
+  border-top: 1px solid var(--hairline);
+}
+.map-consent-text {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--muted);
+  max-width: 520px;
+  letter-spacing: 0.02em;
+}
+.map-consent-text strong {
+  color: var(--ink);
+  font-weight: 500;
+}
+#map-consent-btn {
+  padding: 10px 22px;
+  background: var(--ink);
+  color: var(--paper);
+  border: 1px solid var(--ink);
+  border-radius: 0;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+#map-consent-btn:hover { opacity: 0.85; }
+
 #map-legend {
   background: var(--paper);
   padding: 16px 18px;
@@ -591,6 +628,68 @@ button#analyze-btn:disabled {
   width: 18px;
   flex-shrink: 0;
   border-top: 1.2px dashed var(--muted);
+}
+
+/* ── Legal page (Datenschutz) */
+.legal-card {
+  background: var(--paper);
+  border: 1px solid var(--hairline);
+  padding: 32px 36px;
+}
+.legal-card .card-eyebrow { margin-bottom: 6px; }
+.legal-meta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 28px;
+}
+.legal-card h2 {
+  font-family: var(--font-sans);
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  margin-top: 32px;
+  margin-bottom: 10px;
+  color: var(--ink);
+}
+.legal-card h3 {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  margin-top: 20px;
+  margin-bottom: 6px;
+  color: var(--ink);
+}
+.legal-card p {
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--ink);
+  margin-bottom: 10px;
+  max-width: 700px;
+}
+.legal-card a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.legal-card a:hover { color: var(--muted); }
+.legal-card code {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  background: var(--surface-2);
+  padding: 1px 5px;
+  border-radius: 2px;
+}
+.legal-back {
+  margin-top: 36px !important;
+  padding-top: 20px;
+  border-top: 1px solid var(--hairline);
+}
+.header-link {
+  text-decoration: none;
+  color: inherit;
 }
 
 /* ── Footer */

@@ -32,6 +32,29 @@ document.addEventListener('DOMContentLoaded', () => {
   let sourceLabel = null;   // human-readable origin (filename / Strava activity name)
   let mapInst     = null;
 
+  // Map consent — Carto tile requests are gated behind an explicit click (DSGVO).
+  // Persists only for the lifetime of this page load.
+  let mapConsentGiven = false;
+  let pendingMapData  = null;
+  const mapConsentEl  = document.getElementById('map-consent');
+  const mapEl         = document.getElementById('map');
+  const mapConsentBtn = document.getElementById('map-consent-btn');
+
+  mapConsentBtn.addEventListener('click', () => {
+    mapConsentGiven = true;
+    mapConsentEl.classList.add('hidden');
+    mapEl.classList.remove('hidden');
+    if (pendingMapData) {
+      showMap(pendingMapData);
+      pendingMapData = null;
+    }
+  });
+
+  function showMap({ routeWithDist, weatherPoints }) {
+    if (!mapInst) mapInst = initMap('map');
+    renderMap(mapInst, routeWithDist, weatherPoints);
+  }
+
   // ── Strava button visibility ──────────────────────────────────────────────
   if (typeof stravaConfigured === 'function' && stravaConfigured()) {
     stravaBtn.classList.remove('hidden');
@@ -131,9 +154,16 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="summary-item"><span class="label">Wetterpunkte</span><span class="value">${weatherPoints.length}</span></div>
       `;
 
-      // Map
-      if (!mapInst) mapInst = initMap('map');
-      renderMap(mapInst, routeWithDist, weatherPoints);
+      // Map — only initialize (= load Carto tiles) if user has consented this session
+      if (mapConsentGiven) {
+        mapConsentEl.classList.add('hidden');
+        mapEl.classList.remove('hidden');
+        showMap({ routeWithDist, weatherPoints });
+      } else {
+        pendingMapData = { routeWithDist, weatherPoints };
+        mapConsentEl.classList.remove('hidden');
+        mapEl.classList.add('hidden');
+      }
 
       // Charts
       renderAllCharts(weatherPoints);
